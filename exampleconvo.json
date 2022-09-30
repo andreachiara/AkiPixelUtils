@@ -1,0 +1,136 @@
+{
+    "conversations" : 
+    [
+        {
+            "convoid" : 233,
+            "exchanges" : [
+                {
+                    "id" : 1,
+                    "sentence" : "This is the beginning of convo",
+                    "replies" : [
+                        {
+                            "reply_text" : "This is reply 0A",
+                            "nextexchange" : 1
+                        },
+                        {
+                            "reply_text" : "This is reply 0B",
+                            "nextexchange" : 2
+                        },
+                        {
+                            "reply_text" : "This is reply 0C",
+                            "nextexchange" : 3
+                        }
+                    ]
+                },
+                {
+                    "id" : 2,
+                    "sentence" : "This is the consequence of selecting 0A",
+                    "replies" : [
+                        {
+                            "reply_text" : "This is reply 1A",
+                            "nextexchange" : 4
+                        },
+                        {
+                            "reply_text" : "This is reply 1B",
+                            "nextexchange" : 5
+                        },
+                        {
+                            "reply_text" : "This is reply 1C",
+                            "nextexchange" : 6
+                        }
+                    ]
+                },
+                {
+                    "id" : 3,
+                    "sentence" : "This is the consequence of selecting 0B",
+                    "replies" : [
+                        {
+                            "reply_text" : "This is reply 2A",
+                            "nextexchange" : 4
+                        },
+                        {
+                            "reply_text" : "This is reply 2B",
+                            "nextexchange" : 5
+                        },
+                        {
+                            "reply_text" : "This is reply 2C",
+                            "nextexchange" : 6
+                        }
+                    ]
+                },
+                {
+                    "id" : 4,
+                    "sentence" : "This is the consequence of selecting 0C",
+                    "replies" : [
+                        {
+                            "reply_text" : "This is reply 3A",
+                            "nextexchange" : 4
+                        },
+                        {
+                            "reply_text" : "This is reply 3B",
+                            "nextexchange" : 5
+                        },
+                        {
+                            "reply_text" : "This is reply 3C",
+                            "nextexchange" : 6
+                        }
+                    ]
+                },
+                {
+                    "id" : 5,
+                    "sentence" : "This is the consequence of selecting 1A, 2A, or 3A",
+                    "replies" : [
+                        {
+                            "reply_text" : "This is reply 4A. Convo ends here.",
+                            "nextexchange" : 0
+                        },
+                        {
+                            "reply_text" : "This is reply 4B Convo ends here.",
+                            "nextexchange" : 0
+                        },
+                        {
+                            "reply_text" : "This is reply 4C Convo ends here.",
+                            "nextexchange" : 0
+                        }
+                    ]
+                },
+                {
+                    "id" : 6,
+                    "sentence" : "This is the consequence of selecting 1B, 2B, or 3B",
+                    "replies" : [
+                        {
+                            "reply_text" : "5A Convo ends here.",
+                            "nextexchange" : 0
+                        },
+                        {
+                            "reply_text" : "5B  Convo ends here.",
+                            "nextexchange" : 0
+                        },
+                        {
+                            "reply_text" : "5C Convo ends here.",
+                            "nextexchange" : 0
+                        }
+                    ]
+                },
+                {
+                    "id" : 7,
+                    "sentence" : "This is the consequence of selecting 1C, 2C, or 3C",
+                    "replies" : [
+                        {
+                            "reply_text" : "6A Convo ends here.",
+                            "nextexchange" : 0
+                        },
+                        {
+                            "reply_text" : "6B Convo ends here.",
+                            "nextexchange" : 0
+                        },
+                        {
+                            "reply_text" : "6C Convo ends here.",
+                            "nextexchange" : 0
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

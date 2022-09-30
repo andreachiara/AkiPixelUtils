@@ -1,0 +1,6 @@
+[submodule "olcPixelGameEngine"]
+	path = olcPixelGameEngine
+	url = https://github.com/OneLoneCoder/olcPixelGameEngine.git
+[submodule "json"]
+	path = json
+	url = https://github.com/nlohmann/json.git

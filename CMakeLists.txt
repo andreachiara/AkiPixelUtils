@@ -40,7 +40,7 @@ endif()
 set(IncludeDir include/) # Change include/ to your include directory
 target_include_directories(${Executable} PRIVATE ${IncludeDir})
 target_include_directories(${Executable} PRIVATE  include/)
-target_include_directories(${Executable} PRIVATE  soloud/include)
+target_include_directories(${Executable} PRIVATE  soloud_dir/include)
 file(GLOB_RECURSE SourceFiles
         ${SourceDir}/*.cpp
         #olcExampleProgram.cpp # Remove this
@@ -59,7 +59,7 @@ find_package(PNG REQUIRED)
 
 add_subdirectory(json)
 add_subdirectory(FreeType2)
-add_subdirectory(soloud)
+add_subdirectory(soloud_dir)
 
 
 target_include_directories(${Executable} PRIVATE ${PNG_INCLUDE_DIR})

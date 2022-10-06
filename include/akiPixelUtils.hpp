@@ -193,7 +193,7 @@ namespace akiPixelUtils {
         float steptime {1};
         float elapsed_time {};
         int current_frame {0}, numframes {0};
-        uint sprite_scale = 1U;
+        unsigned int sprite_scale = 1U;
 
 
         public:

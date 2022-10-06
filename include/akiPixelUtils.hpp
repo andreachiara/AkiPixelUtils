@@ -3,6 +3,63 @@
 
 namespace akiPixelUtils {
 
+    class Camera {
+        olc::vf2d position, size;
+        olc::vf2d minpos, maxpos;
+
+        public:
+            Camera() = default;
+            Camera(olc::vf2d pos, olc::vf2d size, olc::vf2d minpos, olc::vf2d maxpos) {
+                this->position = pos;
+                this->size = size;
+                this->minpos = minpos;
+                this->maxpos = maxpos;
+            }
+
+            void set_position(olc::vf2d pos) {
+                this->position = olc::vf2d(std::min(std::max(pos.x, this->minpos.x), this->maxpos.x), std::min(std::max(pos.y, this->minpos.y), this->maxpos.y));
+            }
+
+            void set_centerposition(olc::vf2d cpos) {
+                olc::vf2d pos = cpos - this->size/2;
+                this->position = olc::vf2d(std::min(std::max(pos.x, this->minpos.x), this->maxpos.x), std::min(std::max(pos.y, this->minpos.y), this->maxpos.y));
+            }
+
+            void set_size(olc::vf2d pos) {
+                this->position = pos;
+            }
+
+            void add_position(olc::vf2d addpos) {
+                this->position += addpos;
+                this->position = olc::vf2d(std::min(std::max(this->position.x, this->minpos.x), this->maxpos.x), std::min(std::max(this->position.y, this->minpos.y), this->maxpos.y));
+                //printf("Camera position: (%f, %f)\n", this->position.x, this->position.y);
+            }
+
+            void add_size(olc::vf2d addsize) {
+                this->size += addsize;
+            }
+
+            olc::vf2d convert_local_to_world(olc::vf2d local) {
+                return local + this->position;
+            }
+
+            olc::vf2d convert_world_to_local(olc::vf2d world) {
+                return world - this->position;
+            }
+
+            olc::vi2d convert_local_to_world(olc::vi2d local) {
+                return local + this->position;
+            }
+
+            olc::vi2d convert_world_to_local(olc::vi2d world) {
+                olc::vi2d tmp {world - this->position};
+                //printf("CAMERA: converting world to local: w(%d,%d), l(%d,%d)\n", world.x, world.y, tmp.x, tmp.y);
+                return tmp;
+            }
+
+
+    };
+
     struct Line{};
 
     struct Rectangle {
@@ -69,9 +126,9 @@ namespace akiPixelUtils {
                 return this->collisors;
             }
 
-            void DBG_draw_terrainhitboxes(olc::PixelGameEngine *engine) {
+            void DBG_draw_terrainhitboxes(olc::PixelGameEngine *engine, Camera* cam) {
                 for (auto& collisor : this->collisors) {
-                    engine->DrawRect(collisor.pos, collisor.size, olc::RED);
+                    engine->DrawRect(cam->convert_world_to_local(collisor.pos), collisor.size, olc::RED);
                 }
             }
     };
@@ -244,7 +301,7 @@ namespace akiPixelUtils {
 
             void draw_current_frame(olc::vi2d pos, olc::PixelGameEngine *engine, bool as_decal) {
                 olc::vi2d framecoords = this->get_currentframe_coords();
-                //printf("frame %d x=%d y=%d\n", this->current_frame, framecoords.x, framecoords.y);
+                ////printf("frame %d x=%d y=%d\n", this->current_frame, framecoords.x, framecoords.y);
                 if (as_decal) {
                     engine->olc::PixelGameEngine::DrawPartialDecal(pos, this->sprite_size*this->sprite_scale, this->decalsheet.get(), framecoords, this->sprite_size);
                 } else {
@@ -264,9 +321,9 @@ namespace akiPixelUtils {
     protected:
         std::unique_ptr<AnimatedSprite> idleanimation;
         olc::vf2d position, size, offset;
-        olc::vf2d movingspeed, movingacceleration, acc_speed_cap, friction {olc::vf2d(600, 0)};
+        olc::vf2d movingspeed, movingacceleration, acc_speed_cap, friction {olc::vf2d(900, 0)};
         bool jumping {false}, enable_friction{true}, jumping_friction{false}, falling{true}, grounded {false};
-        float jumpingtime{0.f}, jumpedtime{0.f}, starting_jumpingspeed{700.f}, gravity{900.f}, current_jumpingspeed{0.f};
+        float jumpingtime{0.f}, jumpedtime{0.f}, starting_jumpingspeed{650.f}, gravity{900.f}, current_jumpingspeed{0.f};
         int baseheight {0};
 
         Rectangle hitbox;
@@ -295,7 +352,7 @@ namespace akiPixelUtils {
             switch (this->jumpingfalling) {
                 case MovingY::GROUND:
                     this->movingspeed.y = 0;
-                    this->jumpingfalling = MovingY::FALL;
+                    //this->jumpingfalling = MovingY::FALL;
                     break;
 
                 case MovingY::FALL:
@@ -315,7 +372,7 @@ namespace akiPixelUtils {
                     break;
             }
 
-            printf("speed: %f, %f\n", this->movingspeed.x, this->movingspeed.y);
+            //printf("speed: %f, %f\n", this->movingspeed.x, this->movingspeed.y);
 
             this->position += this->movingspeed * elapsed;
             this->movingspeed += (this->movingacceleration) * elapsed;
@@ -324,10 +381,18 @@ namespace akiPixelUtils {
             }
 
             if (this->enable_friction && (this->jumpingfalling == MovingY::GROUND || this->jumping_friction)) {
-                printf("Frictioncalc\n");
+                //printf("Frictioncalc\n");
                 this->movingspeed.x -= (this->movingspeed.x == 0 ? 0 : (this->movingspeed.x > 0 ? this->friction.x : (-this->friction.x))) * elapsed;
                 this->movingspeed.y -= (this->movingspeed.y == 0 ? 0 : (this->movingspeed.y > 0 ? this->friction.y : (-this->friction.y))) * elapsed;
+            } else {
+                //printf("No friction in state %d", this->jumpingfalling);
             }
+            
+            /*if (this->grounded) {
+                grounded = false;
+            } else {
+                this->jumpingfalling = MovingY::FALL;
+            }*/
             //this->movingspeed.y -= (this->movingspeed.y == 0 ? 0 : (this->movingspeed.y > 0 ? this->friction.y : (-this->friction.y))) * elapsed;
             
         }
@@ -337,7 +402,7 @@ namespace akiPixelUtils {
         void handleCollision(Rectangle coll) {
             if (check_intersect(coll, hitbox)) {
                 //Generic entity collision would go here
-                printf("Generic Entity Collision\n");
+                //printf("Generic Entity Collision\n");
             }
         }
 
@@ -346,6 +411,11 @@ namespace akiPixelUtils {
                 handleCollision(hbox);
             }
 
+        }
+        void check_terrain_collisions(std::vector<Rectangle> terr_colliders) {
+            for (auto& collider : terr_colliders){
+                handleCollision(collider);
+            }
         }
 
         void set_position(olc::vf2d pos) {
@@ -396,9 +466,9 @@ namespace akiPixelUtils {
             this->acc_speed_cap = maxspeed;
         }
 
-        void draw_entity(olc::PixelGameEngine *engine, bool as_decal) {
-            this->idleanimation.get()->draw_current_frame(position, engine, as_decal);
-            engine->DrawRect(this->position+this->hitbox.pos, this->hitbox.size);
+        void draw_entity(olc::PixelGameEngine *engine, bool as_decal, Camera *camera) {
+            this->idleanimation.get()->draw_current_frame(camera->convert_world_to_local(this->position), engine, as_decal);
+            engine->DrawRect(camera->convert_world_to_local(this->position+this->hitbox.pos), this->hitbox.size);
         }
 
         void set_baseheight(int height) {
@@ -440,7 +510,21 @@ namespace akiPixelUtils {
                 //this->movingacceleration -= olc::vf2d(0, this->starting_jumpingspeed);
                 this->current_jumpingspeed = this->starting_jumpingspeed;
             } else {
-                printf("NO DOUBLEJUMP!!");
+                //printf("NO DOUBLEJUMP!!");
+            }
+
+        }
+
+        bool startJump(float jumpingspeed) {
+            if (this->jumpingfalling == MovingY::GROUND){
+                this->jumpingfalling = MovingY::JUMP;
+                this->movingspeed -= olc::vf2d(0, jumpingspeed);
+                //this->movingacceleration -= olc::vf2d(0, this->starting_jumpingspeed);
+                this->current_jumpingspeed = jumpingspeed;
+                return true;
+            } else {
+                //printf("NO DOUBLEJUMP!!");
+                return false;
             }
 
         }
@@ -525,16 +609,16 @@ namespace akiPixelUtils {
                     Rectangle hb = this->hitboxes.at(i);
                     hb.pos += this->position;
                     if (check_intersect(coll, hb)) {
-                        printf("Character Entity Collision\n");
+                        //printf("Character Entity Collision\n");
                         switch (i) {
                             case HitboxTypes::GENERIC:
-                                printf("GENERIC\ln");
+                                //printf("GENERIC\ln");
 
                                 break;
 
                             case HitboxTypes::TOP:
                                 this->jumpingfalling = MovingY::FALL;
-                                printf("TOP\n");
+                                //printf("TOP\n");
                                 this->position.y = coll.bottomleft().y;
                                 this->movingspeed.y = 2.f;
 
@@ -542,15 +626,16 @@ namespace akiPixelUtils {
 
                             case HitboxTypes::BOTTOM:
                                 this->jumpingfalling = MovingY::GROUND;
-                                printf("BOTTOM\n");
-                                this->position.y = coll.topleft().y - this->size.y;
+                                //printf("BOTTOM\n");
+                                this->position.y = coll.topleft().y - (this->size.y-1.f);
                                 this->movingspeed.y = 0;
+                                this->grounded = true;
 
                                 break;
 
                             case HitboxTypes::LEFT:
                                 this->movingspeed.x = std::max(this->movingspeed.x, 6.f);
-                                printf("LEFT\n");
+                                //printf("LEFT\n");
                                 this->position.x = std::max(coll.topright().x - (this->offset.x + 1), this->position.x);
                                 //this->movingspeed.y = 2.f;
 
@@ -559,36 +644,44 @@ namespace akiPixelUtils {
 
                             case HitboxTypes::RIGHT:
                                 this->movingspeed.x = std::min(this->movingspeed.x, -6.f);
-                                printf("RIGHT\n");
+                                //printf("RIGHT\n");
                                 this->position.x = std::min(coll.topright().x - (this->offset.x + 1), this->position.x);
 
                                 break;
 
                             default:
-                                printf("OTHER\n");
+                                //printf("OTHER\n");
                                 break;
                         }
-                        //Generic entity collision would go here
+
                     } else {
                         if (this->jumpingfalling == MovingY::GROUND){
                             //this->jumpingfalling = MovingY::FALL;
-                            //printf("NoCollision = FALL if ground previously\n");
+                            ////printf("NoCollision = FALL if ground previously\n");
                         }
 
                     }
                 }
 
             }
-            void DBGDRAW(olc::PixelGameEngine *engine) {
-                for (auto& hb : this->hitboxes) {
-                    engine->DrawRect(this->position+hb.pos, hb.size, olc::BLUE);
+
+            void check_terrain_collisions(std::vector<Rectangle> terr_colliders) {
+                this->jumpingfalling = MovingY::FALL;
+                for (auto& collider : terr_colliders){
+                    handleCollision(collider);
                 }
             }
 
-            void draw_entity(olc::PixelGameEngine *engine, bool as_decal) {
-                this->idleanimation.get()->draw_current_frame(position, engine, as_decal);
-                engine->DrawRect(this->position+this->hitbox.pos, this->hitbox.size);
-                this->DBGDRAW(engine);
+            void DBGDRAW(olc::PixelGameEngine *engine, Camera* camera) {
+                for (auto& hb : this->hitboxes) {
+                    engine->DrawRect(camera->convert_world_to_local(this->position+hb.pos), hb.size, olc::BLUE);
+                }
+            }
+
+            void draw_entity(olc::PixelGameEngine *engine, bool as_decal, Camera *camera) {
+                this->idleanimation.get()->draw_current_frame(camera->convert_world_to_local(this->position), engine, as_decal);
+                engine->DrawRect(camera->convert_world_to_local(this->position+this->hitbox.pos), this->hitbox.size);
+                this->DBGDRAW(engine, camera);
             }  
 
             std::vector<Rectangle> get_all_hitboxes() {
@@ -632,23 +725,27 @@ namespace akiPixelUtils {
         std::unique_ptr<olc::Sprite> currsprite;
         std::unique_ptr<olc::Decal> currsprite_dec;
         MapCollisors terrain_collision;
+        Camera cam;
         
         std::unique_ptr<olc::Sprite> preloadsprite;
         std::unique_ptr<olc::Sprite> preload_collision;
 
+        std::string levelmusic;
 
         std::vector<std::unique_ptr<Entity>> entities;
         std::vector<std::unique_ptr<Character>> characters;
 
-        olc::vf2d map_size {};
+        olc::vi2d map_size {};
         olc::vf2d camera_size {}, camera_pos{};
 
         public:    
             Level() = default;
 
-            Level ( std::unique_ptr<olc::Sprite> currsprite,
-                    std::unique_ptr<olc::Sprite> collision_bitmap) {
-                        this->currsprite = std::move(currsprite);
+            Level ( std::string currsprite_s,
+                    std::string collision_bitmap_s) {
+                        this->currsprite = std::make_unique<olc::Sprite>(currsprite_s);
+
+                        this->currsprite_dec = std::make_unique<olc::Decal>(this->currsprite.get());
                         //this->collision_bitmap = std::move(collision_bitmap);
                     }
 
@@ -657,22 +754,18 @@ namespace akiPixelUtils {
             }
             
             void compute_collisions() {
-                //printf ("computing collisions\n");
+                ////printf ("computing collisions\n");
 
                 for (auto& ent : this->entities) {
                     if (!(ent.get()->get_phys())) {continue;}
-                    for (auto& collider : terrain_collision.get_allcollisors()) {
-                        ent.get()->handleCollision(collider);
-                    } 
+                    ent.get()->check_terrain_collisions(terrain_collision.get_allcollisors());
                 }
 
                 for (auto& ent : this->characters) {
                     if (!(ent.get()->get_phys())) {continue;}
-                    for (auto& collider : terrain_collision.get_allcollisors()) {
-                        ent.get()->handleCollision(collider);
-                    } 
+                    ent.get()->check_terrain_collisions(terrain_collision.get_allcollisors());
                 }
-                //printf("endcollisions\n");
+                ////printf("endcollisions\n");
             }
 
             void get_entityptr (int index, Entity** res) {
@@ -683,12 +776,24 @@ namespace akiPixelUtils {
                 *res = this->characters.at(index).get();
             }
 
+            void set_mapsize(olc::vi2d mapsize) {
+                this->map_size = mapsize;
+            }
+
             void set_entity(std::unique_ptr<Entity> newent, int index) {
                 entities.at(index) = std::move(newent);
             }
             
             void set_entity(std::unique_ptr<Character> newent, int index) {
                 characters.at(index) = std::move(newent);
+            }
+
+            void set_camera(Camera newcam) {
+                this->cam = newcam;
+            }
+
+            Camera* get_camera() {
+                return &this->cam;
             }
 
             int add_entity(std::unique_ptr<Entity> newent) {
@@ -714,18 +819,28 @@ namespace akiPixelUtils {
                 this->compute_collisions();
             }
 
+            void draw_level(olc::PixelGameEngine *engine, bool as_decal) {
+                //printf("map size: (%d, %d)", this->map_size.x, this->map_size.y);
+                if (as_decal) {
+                    //DrawPartialDecal(olc::vf2d(0,0), olc::vi2d(1280, 720), this->currsprite_dec.get(), olc::vi2d(200, 500), olc::vf2d(1280, 720));
+                    engine->DrawPartialDecal(olc::vi2d(0, 0), this->map_size, this->currsprite_dec.get(), cam.convert_local_to_world(olc::vi2d(0, 0)), this->map_size);
+                } else {
+                    engine->DrawPartialSprite(olc::vi2d(0, 0), this->currsprite.get(), cam.convert_local_to_world(olc::vi2d(0, 0)), this->map_size);
+                }
+            }
+
             void draw_entities(olc::PixelGameEngine *engine, bool as_decal) {
                 for (auto& ent : this->entities) {
-                    ent.get()->draw_entity(engine, as_decal);
+                    ent.get()->draw_entity(engine, as_decal, &cam);
                 }
 
                 for (auto& ent : this->characters) {
-                    ent.get()->draw_entity(engine, as_decal);
+                    ent.get()->draw_entity(engine, as_decal, &cam);
                 }
             }
 
             void DBGDRAW(olc::PixelGameEngine *engine) {
-                this->terrain_collision.DBG_draw_terrainhitboxes(engine);
+                this->terrain_collision.DBG_draw_terrainhitboxes(engine, &cam);
             }
 
             

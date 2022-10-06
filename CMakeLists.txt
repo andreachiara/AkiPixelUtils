@@ -25,9 +25,22 @@ add_executable(${Executable}
 src/Example.cpp
 )
 
+# STATIC stuff (Windows)
+if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+        set(BUILD_FOR_WIN TRUE)
+endif()
+option(STATIC_BUILD "Build a static binary." ${BUILD_FOR_WIN})
+
+if (STATIC_BUILD)
+        set(CMAKE_EXE_LINKER_FLAGS "-static")
+        set(CMAKE_FIND_LIBRARY_SUFFIXES ".a" CONFIG)
+        set(BUILD_SHARED_LIBS OFF)
+endif()
+
 set(IncludeDir include/) # Change include/ to your include directory
 target_include_directories(${Executable} PRIVATE ${IncludeDir})
 target_include_directories(${Executable} PRIVATE  include/)
+target_include_directories(${Executable} PRIVATE  soloud/include)
 file(GLOB_RECURSE SourceFiles
         ${SourceDir}/*.cpp
         #olcExampleProgram.cpp # Remove this
@@ -46,6 +59,7 @@ find_package(PNG REQUIRED)
 
 add_subdirectory(json)
 add_subdirectory(FreeType2)
+add_subdirectory(soloud)
 
 
 target_include_directories(${Executable} PRIVATE ${PNG_INCLUDE_DIR})
@@ -53,7 +67,9 @@ target_include_directories(${Executable} PRIVATE FreeType2/include/)
 
 
 target_include_directories(${Executable} PRIVATE ${FREETYPE_INCLUDE_DIRS})
+
 target_link_libraries(${Executable} ${FREETYPE_LIBRARIES})
+target_link_libraries(${Executable} soloud)
 
 link_libraries(${Executable}
         Threads::Threads

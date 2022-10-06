@@ -279,7 +279,7 @@ namespace akiPixelUtils {
                 this->steptime = time;
             }
 
-            void set_scale(uint scale) {
+            void set_scale(unsigned int scale) {
                 this->sprite_scale = scale;
             }
 

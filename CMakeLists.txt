@@ -64,7 +64,7 @@ add_subdirectory(soloud_dir)
 
 target_include_directories(${Executable} PRIVATE ${PNG_INCLUDE_DIR})
 target_include_directories(${Executable} PRIVATE FreeType2/include/)
-
+target_include_directories(${Executable} PRIVATE json/include/)
 
 target_include_directories(${Executable} PRIVATE ${FREETYPE_INCLUDE_DIRS})
 
@@ -78,8 +78,22 @@ link_libraries(${Executable}
         OpenGL::GLX
         )
 
+if (WIN32)
+# do something
+        target_link_libraries(${Executable} opengl32)
+        target_link_libraries(${Executable} gdiplus)
+        target_link_libraries(${Executable} ssp)
+        target_link_libraries(${Executable} dwmapi)
+        target_link_libraries(${Executable} wsock32)
+        target_link_libraries(${Executable} shlwapi)
+endif (WIN32)
+
+if (UNIX)
+        target_link_libraries(${Executable} GL)
+    # do something
+endif (UNIX)
+
 target_link_libraries(${Executable} stdc++fs)
-target_link_libraries(${Executable} GL)
 target_link_libraries(${Executable} png)
 
 set(CMAKE_THREAD_LIBS_INIT "-lpthread")

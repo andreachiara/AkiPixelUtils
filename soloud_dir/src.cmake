@@ -211,9 +211,9 @@ set (TARGET_SOURCES
 	${FILTERS_SOURCES}
 )
 
-if (SOLOUD_DYNAMIC)
-	add_library(${TARGET_NAME} ${TARGET_SOURCES})
-endif ()
+#if (SOLOUD_DYNAMIC)
+#	add_library(${TARGET_NAME} ${TARGET_SOURCES})
+#endif ()
 
 if (SOLOUD_STATIC)
 	add_library(${TARGET_NAME} STATIC ${TARGET_SOURCES})

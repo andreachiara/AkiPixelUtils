@@ -846,7 +846,10 @@ namespace akiPixelUtils {
             void draw_level(olc::PixelGameEngine *engine, bool as_decal) {
                 //printf("map size: (%d, %d)", this->map_size.x, this->map_size.y);
                 for (auto& bg : this->backgrounds) {
-                    engine->DrawPartialDecal(olc::vi2d(0, 0), this->map_size, bg.first.get(), cam.convert_local_to_world(olc::vi2d(0, 0)) * bg.second, this->map_size);
+                    olc::vi2d pos {cam.convert_local_to_world(olc::vi2d(0, 0))/bg.second};
+                    if (pos.y < 0) pos.y = 0;
+                    printf ("\npos: %d, %d\n", pos.x, pos.y);
+                    engine->DrawPartialDecal(olc::vi2d(0, 0), this->map_size, bg.first.get(), pos, this->map_size);
                 }
 
                 if (as_decal) {

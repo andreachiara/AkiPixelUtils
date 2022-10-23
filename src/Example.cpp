@@ -143,9 +143,12 @@ public:
 		jf = nlohmann::json::parse(ifs);
 		all_conversations = jf;
 
-		this->defaultlevel = akiPixelUtils::Level("../Assets/terrains/test_terrain_s.png", "../Assets/terrains/test_terrain_s.png");
+		this->defaultlevel = akiPixelUtils::Level("../Assets/terrains/lvl0_terrain.png");
 		this->defaultlevel.set_camera(this->maincamera);
 		this->defaultlevel.set_mapsize({1280, 720});
+		//this->defaultlevel.add_background("../Assets/terrains/lvl0_background0.png", olc::vf2d{0.1, 0.1});
+		this->defaultlevel.add_overlay("../Assets/overlays/tubee_colore.png", olc::vf2d{2, 2});
+		this->defaultlevel.add_overlay("../Assets/overlays/vines_rami_overlay.png", olc::vf2d{2, 2});
 
 		backg = olc::Sprite("../Assets/terrains/test_terrain_s.png");
 
@@ -179,7 +182,7 @@ public:
 		playerindex = defaultlevel.add_character(std::move(player));
 
 		gSoloud.init(); // Initialize SoLoud
-		uint32_t res = currentMusic.load("../Assets/audio/Ludum Dare 38 - Track 10.wav"); // Load a wave
+		uint32_t res = currentMusic.load("../Assets/audio/TREE.wav"); // Load a wave
 		jump_sfx.load("../Assets/audio/Jump 1.wav"); // Load a wave
 		printf("res: %d", res);
 		int x = gSoloud.play(currentMusic); // Play the wave &  Grab the handle
@@ -287,6 +290,7 @@ public:
 		defaultlevel.draw_level(this, true);
 		defaultlevel.update_entities(fElapsedTime);
 		defaultlevel.draw_entities(this, true);
+		defaultlevel.draw_overlays(this, true);
 
 		defaultlevel.DBGDRAW(this);
 		std::u32string test = U"this is a test";

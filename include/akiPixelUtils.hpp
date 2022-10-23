@@ -726,6 +726,10 @@ namespace akiPixelUtils {
         std::unique_ptr<olc::Decal> currsprite_dec;
         MapCollisors terrain_collision;
         Camera cam;
+
+        std::map<std::unique_ptr<olc::Decal>, olc::vi2d> backgrounds; //n is closer to the screen, 0 is the farthest. the vector is movement ratio
+        std::map<std::unique_ptr<olc::Decal>, olc::vi2d> overlays; //n is closer to the screen, 0 is the farthest. the vector is movement ratio
+
         
         std::unique_ptr<olc::Sprite> preloadsprite;
         std::unique_ptr<olc::Sprite> preload_collision;
@@ -741,8 +745,7 @@ namespace akiPixelUtils {
         public:    
             Level() = default;
 
-            Level ( std::string currsprite_s,
-                    std::string collision_bitmap_s) {
+            Level ( std::string currsprite_s) {
                         this->currsprite = std::make_unique<olc::Sprite>(currsprite_s);
 
                         this->currsprite_dec = std::make_unique<olc::Decal>(this->currsprite.get());
@@ -792,6 +795,18 @@ namespace akiPixelUtils {
                 this->cam = newcam;
             }
 
+            void add_background(std::string spritelocation, olc::vi2d moveratio) {
+                olc::Sprite sprite (spritelocation);
+                std::unique_ptr<olc::Decal> dec {std::make_unique<olc::Decal>(&sprite)};
+                this->backgrounds.emplace(std::move(dec), moveratio);
+            }
+
+            void add_overlay(std::string spritelocation, olc::vi2d moveratio) {
+                olc::Sprite sprite (spritelocation);
+                std::unique_ptr<olc::Decal> dec {std::make_unique<olc::Decal>(&sprite)};
+                this->overlays.emplace(std::move(dec), moveratio);
+            }
+
             Camera* get_camera() {
                 return &this->cam;
             }
@@ -819,14 +834,28 @@ namespace akiPixelUtils {
                 this->compute_collisions();
             }
 
+            void draw_overlays(olc::PixelGameEngine *engine, bool as_decal) {
+                for (auto& ol : this->overlays) {
+                    olc::vi2d pos {cam.convert_local_to_world(olc::vi2d(0, 0)) + cam.convert_local_to_world(olc::vi2d(0, 0))/ol.second - olc::vi2d(0, 1100)};
+                    if (pos.y < 0) pos.y = 0;
+                    printf ("\npos: %d, %d\n", pos.x, pos.y);
+                    engine->DrawPartialDecal(olc::vi2d(0, 0), this->map_size, ol.first.get(), pos, this->map_size);
+                }
+            }
+
             void draw_level(olc::PixelGameEngine *engine, bool as_decal) {
                 //printf("map size: (%d, %d)", this->map_size.x, this->map_size.y);
+                for (auto& bg : this->backgrounds) {
+                    engine->DrawPartialDecal(olc::vi2d(0, 0), this->map_size, bg.first.get(), cam.convert_local_to_world(olc::vi2d(0, 0)) * bg.second, this->map_size);
+                }
+
                 if (as_decal) {
                     //DrawPartialDecal(olc::vf2d(0,0), olc::vi2d(1280, 720), this->currsprite_dec.get(), olc::vi2d(200, 500), olc::vf2d(1280, 720));
                     engine->DrawPartialDecal(olc::vi2d(0, 0), this->map_size, this->currsprite_dec.get(), cam.convert_local_to_world(olc::vi2d(0, 0)), this->map_size);
                 } else {
                     engine->DrawPartialSprite(olc::vi2d(0, 0), this->currsprite.get(), cam.convert_local_to_world(olc::vi2d(0, 0)), this->map_size);
                 }
+
             }
 
             void draw_entities(olc::PixelGameEngine *engine, bool as_decal) {
